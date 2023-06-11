@@ -17,19 +17,19 @@ tasks:
 
   migrateup:
     cmds:
-      - migrate -path db/migrations -database "postgresql://$PSQL_USER:$PSQL_PASS@$PSQL_HOST:$PSQL_PORT/$PSQL_DBNAME?sslmode=$PSQL_SSLMODE" -verbose up
+      - migrate -path internal/db/migrations -database "postgresql://$PSQL_USER:$PSQL_PASS@$PSQL_HOST:$PSQL_PORT/$PSQL_DBNAME?sslmode=$PSQL_SSLMODE" -verbose up
 
   migratedown:
     cmds:
-      - migrate -path db/migrations -database "postgresql://$PSQL_USER:$PSQL_PASS@$PSQL_HOST:$PSQL_PORT/$PSQL_DBNAME?sslmode=$PSQL_SSLMODE" -verbose down
+      - migrate -path internal/db/migrations -database "postgresql://$PSQL_USER:$PSQL_PASS@$PSQL_HOST:$PSQL_PORT/$PSQL_DBNAME?sslmode=$PSQL_SSLMODE" -verbose down
 
   migrateup1:
     cmds:
-      - migrate -path db/migrations -database "postgresql://$PSQL_USER:$PSQL_PASS@$PSQL_HOST:$PSQL_PORT/$PSQL_DBNAME?sslmode=$PSQL_SSLMODE" -verbose up 1
+      - migrate -path internal/db/migrations -database "postgresql://$PSQL_USER:$PSQL_PASS@$PSQL_HOST:$PSQL_PORT/$PSQL_DBNAME?sslmode=$PSQL_SSLMODE" -verbose up 1
 
   migratedown1:
     cmds:
-      - migrate -path db/migrations -database "postgresql://$PSQL_USER:$PSQL_PASS@$PSQL_HOST:$PSQL_PORT/$PSQL_DBNAME?sslmode=$PSQL_SSLMODE" -verbose down 1
+      - migrate -path internal/db/migrations -database "postgresql://$PSQL_USER:$PSQL_PASS@$PSQL_HOST:$PSQL_PORT/$PSQL_DBNAME?sslmode=$PSQL_SSLMODE" -verbose down 1
 
   psql:
     cmds:
