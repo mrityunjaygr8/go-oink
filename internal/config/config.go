@@ -1,4 +1,4 @@
-package main
+package config
 
 import (
 	"github.com/rs/zerolog"
@@ -11,9 +11,9 @@ import (
 // 	Server server.ServerConf
 // }
 
-const envDevelopment = "development"
+const EnvDevelopment = "development"
 
-type config struct {
+type Config struct {
 	DbDsn   string `mapstructure:"PSQL_DSN" json:"PSQL_DSN"`
 	DbPort  int    `mapstructure:"PSQL_PORT" json:"PSQL_PORT"`
 	DbHost  string `mapstructure:"PSQL_HOST" json:"PSQL_HOST"`
@@ -26,31 +26,15 @@ type config struct {
 	Env     string `mapstructure:"ENV" json:"ENV"`
 }
 
-// func (c config) toFields() logrus.Fields {
-// 	fields := make(logrus.Fields)
-//
-// 	fields["DbDsn"] = c.DbDsn
-// 	fields["DbHost"] = c.DbHost
-// 	fields["DbPort"] = c.DbPort
-// 	fields["DbPass"] = c.DbPass
-// 	fields["DbUser"] = c.DbUser
-// 	fields["DbSSL"] = c.DbSSL
-// 	fields["DbName"] = c.DbName
-// 	fields["SrvAddr"] = c.SrvAddr
-// 	fields["SrvPort"] = c.SrvPort
-//
-// 	return fields
-// }
-
-func getConfig(logger zerolog.Logger) (config, error) {
-	var c config
+func GetConfig(path string, logger zerolog.Logger) (Config, error) {
+	var c Config
 
 	viper.SetConfigName(".env")
 	viper.SetConfigType("env")
-	// viper.AddConfigPath(".")
+	viper.AddConfigPath(path)
 
 	viper.SetEnvPrefix("oink")
-	viper.SetDefault("ENV", envDevelopment)
+	viper.SetDefault("ENV", EnvDevelopment)
 
 	viper.BindEnv("SERVER_ADDR", "SERVER_ADDR")
 	viper.BindEnv("SERVER_PORT", "SERVER_PORT")
@@ -67,15 +51,15 @@ func getConfig(logger zerolog.Logger) (config, error) {
 	if err != nil {
 		_, ok := err.(viper.ConfigFileNotFoundError)
 		if !ok {
-			return config{}, err
+			return Config{}, err
 		} else {
-			logger.Error().Err(err)
+			logger.Error().Err(err).Msg("")
 		}
 	}
 
 	err = viper.Unmarshal(&c)
 	if err != nil {
-		return config{}, err
+		return Config{}, err
 	}
 	return c, nil
 }
