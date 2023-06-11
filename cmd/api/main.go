@@ -6,25 +6,29 @@ import (
 	"os"
 
 	_ "github.com/lib/pq"
-	"github.com/mrityunjaygr8/go-oink/server"
 	"github.com/rs/zerolog"
+
+	"github.com/mrityunjaygr8/go-oink/internal/config"
 )
 
 func main() {
 	logger := zerolog.New(os.Stderr).With().Timestamp().Logger()
-	// logger.Logger = logger.Output(zerolog.ConsoleWriter{Out: os.Stderr})
-	c, err := getConfig(logger)
+	path, err := os.Getwd()
+	if err != nil {
+		logger.Fatal().Err(err)
+	}
+	c, err := config.GetConfig(path, logger)
 	if err != nil {
 		logger.Fatal().Err(err)
 	}
 
-	if c.Env == envDevelopment {
+	if c.Env == config.EnvDevelopment {
 		logger = logger.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	}
 
 	logger.Info().Any("config", c).Msg("")
 
-	srvConf := server.ServerConf{
+	srvConf := ServerConf{
 		Addr: c.SrvAddr,
 		Port: c.SrvPort,
 	}
@@ -39,15 +43,15 @@ func main() {
 	db, err := sql.Open("postgres", c.DbDsn)
 	if err != nil {
 		// logger.WithFields(c.toFields()).Fatal(err)
-		logger.Fatal().Any("config", c).Err(err)
+		logger.Fatal().Any("config", c).Err(err).Msg("")
 	}
 
 	err = db.Ping()
 	if err != nil {
 		// logger.WithFields(c.toFields()).Fatal(err)
-		logger.Fatal().Any("config", c).Err(err)
+		logger.Fatal().Any("config", c).Err(err).Msg("")
 	}
 
-	a := server.New(logger, db, srvConf)
+	a := NewServer(logger, db, srvConf)
 	a.Serve()
 }

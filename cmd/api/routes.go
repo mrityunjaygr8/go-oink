@@ -1,4 +1,4 @@
-package server
+package main
 
 import (
 	"net/http"
@@ -20,7 +20,7 @@ type response struct {
 	GameResp string `json:"game"`
 }
 
-func (a *Application) routes() http.Handler {
+func (s *Server) routes() http.Handler {
 	router := chi.NewRouter()
 
 	// middleware.DefaultLogger = middleware.RequestLogger(customLogFormatter{logger: a.l})
@@ -30,7 +30,7 @@ func (a *Application) routes() http.Handler {
 	// router.Use(middleware.Logger)
 	router.Use(middleware.Recoverer)
 
-	router.Use(hlog.NewHandler(a.l))
+	router.Use(hlog.NewHandler(s.l))
 	router.Use(hlog.AccessHandler(func(r *http.Request, status, size int, duration time.Duration) {
 		hlog.FromRequest(r).Info().Str("method", r.Method).Stringer("url", r.URL).Int("status", status).
 			Int("size", size).
@@ -52,7 +52,7 @@ func (a *Application) routes() http.Handler {
 	router.Post("/ping", func(w http.ResponseWriter, r *http.Request) {
 		var req request
 
-		a.readJSON(w, r, &req)
+		s.readJSON(w, r, &req)
 		// a.l.Println(req)
 
 		resp := response{
@@ -60,11 +60,11 @@ func (a *Application) routes() http.Handler {
 			GameResp: req.Game,
 		}
 
-		a.writeJSON(w, http.StatusOK, envelope{"resp": resp}, nil)
+		s.writeJSON(w, http.StatusOK, envelope{"resp": resp}, nil)
 
 	})
 
-	router.Get("/health", health.NewHandler(a.health))
+	router.Get("/health", health.NewHandler(s.health))
 
 	return router
 }

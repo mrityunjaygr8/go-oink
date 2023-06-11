@@ -1,4 +1,4 @@
-package server
+package main
 
 import (
 	"context"
@@ -16,7 +16,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
-type Application struct {
+type Server struct {
 	db     *sql.DB
 	l      zerolog.Logger
 	config ServerConf
@@ -29,8 +29,8 @@ type ServerConf struct {
 	Port int
 }
 
-func New(logger zerolog.Logger, db *sql.DB, srvConf ServerConf) *Application {
-	a := &Application{
+func NewServer(logger zerolog.Logger, db *sql.DB, srvConf ServerConf) *Server {
+	a := &Server{
 		l:      logger,
 		db:     db,
 		config: srvConf,
@@ -39,10 +39,10 @@ func New(logger zerolog.Logger, db *sql.DB, srvConf ServerConf) *Application {
 	return a
 }
 
-func (a *Application) Serve() error {
+func (s *Server) Serve() error {
 
 	shutdownError := make(chan error)
-	a.health = health.NewChecker(
+	s.health = health.NewChecker(
 
 		// Set the time-to-live for our cache to 1 second (default).
 		health.WithCacheDuration(1*time.Second),
@@ -55,7 +55,7 @@ func (a *Application) Serve() error {
 		health.WithCheck(health.Check{
 			Name:    "database",      // A unique check name.
 			Timeout: 2 * time.Second, // A check specific timeout.
-			Check:   a.db.PingContext,
+			Check:   s.db.PingContext,
 		}),
 
 		// // The following check will be executed periodically every 15 seconds
@@ -75,12 +75,12 @@ func (a *Application) Serve() error {
 		// Set a status listener that will be invoked when the health status changes.
 		// More powerful hooks are also available (see docs).
 		health.WithStatusListener(func(ctx context.Context, state health.CheckerState) {
-			a.l.Info().Msg(fmt.Sprintf("health status changed to %s", state.Status))
+			s.l.Info().Msg(fmt.Sprintf("health status changed to %s", state.Status))
 		}),
 	)
 	srv := &http.Server{
-		Addr:         fmt.Sprintf("%s:%d", a.config.Addr, a.config.Port),
-		Handler:      a.routes(),
+		Addr:         fmt.Sprintf("%s:%d", s.config.Addr, s.config.Port),
+		Handler:      s.routes(),
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 30 * time.Second,
@@ -92,8 +92,8 @@ func (a *Application) Serve() error {
 
 		signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
-		s := <-quit
-		a.l.Info().Str("signal", s.String()).Msg("caught signal")
+		sig := <-quit
+		s.l.Info().Str("signal", sig.String()).Msg("caught signal")
 
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
@@ -104,14 +104,14 @@ func (a *Application) Serve() error {
 			shutdownError <- err
 		}
 
-		a.l.Info().Str("addr", srv.Addr).Msg("completing background tasks")
+		s.l.Info().Str("addr", srv.Addr).Msg("completing background tasks")
 
-		a.wg.Wait()
+		s.wg.Wait()
 		shutdownError <- nil
 
 	}()
 
-	a.l.Info().Str("addr", srv.Addr).Str("env", a.config.Addr).Msg("starting server")
+	s.l.Info().Str("addr", srv.Addr).Str("env", s.config.Addr).Msg("starting server")
 
 	err := srv.ListenAndServe()
 	if !errors.Is(err, http.ErrServerClosed) {
@@ -123,7 +123,7 @@ func (a *Application) Serve() error {
 		return err
 	}
 
-	a.l.Info().Str("addr", srv.Addr).Msg("stopped server")
+	s.l.Info().Str("addr", srv.Addr).Msg("stopped server")
 
 	return nil
 }
