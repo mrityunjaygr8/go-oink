@@ -25,9 +25,9 @@ func (s *Server) routes() http.Handler {
 
 	// middleware.DefaultLogger = middleware.RequestLogger(customLogFormatter{logger: a.l})
 
-	router.Use(middleware.RequestID)
-	router.Use(middleware.RealIP)
-	// router.Use(middleware.Logger)
+	// router.Use(middleware.RequestID)
+	// router.Use(middleware.RealIP)
+	// // router.Use(middleware.Logger)
 	router.Use(middleware.Recoverer)
 
 	router.Use(hlog.NewHandler(s.l))
@@ -53,7 +53,6 @@ func (s *Server) routes() http.Handler {
 		var req request
 
 		s.readJSON(w, r, &req)
-		// a.l.Println(req)
 
 		resp := response{
 			NameResp: req.Name,
@@ -63,6 +62,15 @@ func (s *Server) routes() http.Handler {
 		s.writeJSON(w, http.StatusOK, envelope{"resp": resp}, nil)
 
 	})
+
+	router.Get("/api/users", s.UserList())
+	router.Post("/api/users", s.UserCreate())
+
+	router.Get("/api/users/{userID}", s.UserRetrieve())
+	router.Delete("/api/users/{userID}", s.UserDelete())
+	router.Post("/api/users/{userID}/password", s.UserUpdatePassword())
+
+	router.Post("/api/auth/login", s.AuthLogin())
 
 	router.Get("/health", health.NewHandler(s.health))
 
