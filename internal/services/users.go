@@ -19,6 +19,8 @@ type UserService struct {
 	l  zerolog.Logger
 }
 
+var ErrUserNotFound = errors.New("User Not Found")
+
 type UserServiceInterface interface {
 	List(context.Context) (*[]User, error)
 	Insert(context.Context, *User) error
@@ -116,7 +118,7 @@ func (u *UserService) GetByID(ctx context.Context, userID string) (*User, error)
 	err := dbmodels.Users(dbmodels.UserWhere.ID.EQ(userID)).Bind(ctx, u.DB, &user)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, errors.New("User Not Found")
+			return nil, ErrUserNotFound
 		}
 		u.l.Error().Err(err).Msg("service-user-getByID")
 		return nil, err
@@ -129,7 +131,7 @@ func (u *UserService) GetByEmail(ctx context.Context, email string) (*User, erro
 	err := dbmodels.Users(dbmodels.UserWhere.Email.EQ(email)).Bind(ctx, u.DB, &user)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, errors.New("User Not Found")
+			return nil, ErrUserNotFound
 		}
 		u.l.Error().Err(err).Msg("service-user-getByEmail")
 		return nil, err
@@ -142,7 +144,7 @@ func (u *UserService) GetByUsername(ctx context.Context, username string) (*User
 	err := dbmodels.Users(dbmodels.UserWhere.Username.EQ(username)).Bind(ctx, u.DB, &user)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, errors.New("User Not Found")
+			return nil, ErrUserNotFound
 		}
 		u.l.Error().Err(err).Msg("service-user-getByUsername")
 		return nil, err

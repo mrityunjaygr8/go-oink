@@ -13,69 +13,84 @@ import "testing"
 // Separating the tests thusly grants avoidance of Postgres deadlocks.
 func TestParent(t *testing.T) {
 	t.Run("SchemaMigrations", testSchemaMigrations)
+	t.Run("Tokens", testTokens)
 	t.Run("Users", testUsers)
 }
 
 func TestDelete(t *testing.T) {
 	t.Run("SchemaMigrations", testSchemaMigrationsDelete)
+	t.Run("Tokens", testTokensDelete)
 	t.Run("Users", testUsersDelete)
 }
 
 func TestQueryDeleteAll(t *testing.T) {
 	t.Run("SchemaMigrations", testSchemaMigrationsQueryDeleteAll)
+	t.Run("Tokens", testTokensQueryDeleteAll)
 	t.Run("Users", testUsersQueryDeleteAll)
 }
 
 func TestSliceDeleteAll(t *testing.T) {
 	t.Run("SchemaMigrations", testSchemaMigrationsSliceDeleteAll)
+	t.Run("Tokens", testTokensSliceDeleteAll)
 	t.Run("Users", testUsersSliceDeleteAll)
 }
 
 func TestExists(t *testing.T) {
 	t.Run("SchemaMigrations", testSchemaMigrationsExists)
+	t.Run("Tokens", testTokensExists)
 	t.Run("Users", testUsersExists)
 }
 
 func TestFind(t *testing.T) {
 	t.Run("SchemaMigrations", testSchemaMigrationsFind)
+	t.Run("Tokens", testTokensFind)
 	t.Run("Users", testUsersFind)
 }
 
 func TestBind(t *testing.T) {
 	t.Run("SchemaMigrations", testSchemaMigrationsBind)
+	t.Run("Tokens", testTokensBind)
 	t.Run("Users", testUsersBind)
 }
 
 func TestOne(t *testing.T) {
 	t.Run("SchemaMigrations", testSchemaMigrationsOne)
+	t.Run("Tokens", testTokensOne)
 	t.Run("Users", testUsersOne)
 }
 
 func TestAll(t *testing.T) {
 	t.Run("SchemaMigrations", testSchemaMigrationsAll)
+	t.Run("Tokens", testTokensAll)
 	t.Run("Users", testUsersAll)
 }
 
 func TestCount(t *testing.T) {
 	t.Run("SchemaMigrations", testSchemaMigrationsCount)
+	t.Run("Tokens", testTokensCount)
 	t.Run("Users", testUsersCount)
 }
 
 func TestHooks(t *testing.T) {
 	t.Run("SchemaMigrations", testSchemaMigrationsHooks)
+	t.Run("Tokens", testTokensHooks)
 	t.Run("Users", testUsersHooks)
 }
 
 func TestInsert(t *testing.T) {
 	t.Run("SchemaMigrations", testSchemaMigrationsInsert)
 	t.Run("SchemaMigrations", testSchemaMigrationsInsertWhitelist)
+	t.Run("Tokens", testTokensInsert)
+	t.Run("Tokens", testTokensInsertWhitelist)
 	t.Run("Users", testUsersInsert)
 	t.Run("Users", testUsersInsertWhitelist)
 }
 
 // TestToOne tests cannot be run in parallel
 // or deadlocks can occur.
-func TestToOne(t *testing.T) {}
+func TestToOne(t *testing.T) {
+	t.Run("TokenToUserUsingTokenUser", testTokenToOneUserUsingTokenUser)
+}
 
 // TestOneToOne tests cannot be run in parallel
 // or deadlocks can occur.
@@ -83,11 +98,15 @@ func TestOneToOne(t *testing.T) {}
 
 // TestToMany tests cannot be run in parallel
 // or deadlocks can occur.
-func TestToMany(t *testing.T) {}
+func TestToMany(t *testing.T) {
+	t.Run("UserToTokens", testUserToManyTokens)
+}
 
 // TestToOneSet tests cannot be run in parallel
 // or deadlocks can occur.
-func TestToOneSet(t *testing.T) {}
+func TestToOneSet(t *testing.T) {
+	t.Run("TokenToUserUsingTokens", testTokenToOneSetOpUserUsingTokenUser)
+}
 
 // TestToOneRemove tests cannot be run in parallel
 // or deadlocks can occur.
@@ -103,7 +122,9 @@ func TestOneToOneRemove(t *testing.T) {}
 
 // TestToManyAdd tests cannot be run in parallel
 // or deadlocks can occur.
-func TestToManyAdd(t *testing.T) {}
+func TestToManyAdd(t *testing.T) {
+	t.Run("UserToTokens", testUserToManyAddOpTokens)
+}
 
 // TestToManySet tests cannot be run in parallel
 // or deadlocks can occur.
@@ -115,25 +136,30 @@ func TestToManyRemove(t *testing.T) {}
 
 func TestReload(t *testing.T) {
 	t.Run("SchemaMigrations", testSchemaMigrationsReload)
+	t.Run("Tokens", testTokensReload)
 	t.Run("Users", testUsersReload)
 }
 
 func TestReloadAll(t *testing.T) {
 	t.Run("SchemaMigrations", testSchemaMigrationsReloadAll)
+	t.Run("Tokens", testTokensReloadAll)
 	t.Run("Users", testUsersReloadAll)
 }
 
 func TestSelect(t *testing.T) {
 	t.Run("SchemaMigrations", testSchemaMigrationsSelect)
+	t.Run("Tokens", testTokensSelect)
 	t.Run("Users", testUsersSelect)
 }
 
 func TestUpdate(t *testing.T) {
 	t.Run("SchemaMigrations", testSchemaMigrationsUpdate)
+	t.Run("Tokens", testTokensUpdate)
 	t.Run("Users", testUsersUpdate)
 }
 
 func TestSliceUpdateAll(t *testing.T) {
 	t.Run("SchemaMigrations", testSchemaMigrationsSliceUpdateAll)
+	t.Run("Tokens", testTokensSliceUpdateAll)
 	t.Run("Users", testUsersSliceUpdateAll)
 }

@@ -8,5 +8,7 @@ import "testing"
 func TestUpsert(t *testing.T) {
 	t.Run("SchemaMigrations", testSchemaMigrationsUpsert)
 
+	t.Run("Tokens", testTokensUpsert)
+
 	t.Run("Users", testUsersUpsert)
 }

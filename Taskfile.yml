@@ -46,3 +46,13 @@ tasks:
   sqlboiler:
     cmds:
       - sqlboiler --wipe psql
+
+  nuke-n-go:
+    cmds:
+      - docker rm -f "postgres"
+      - task: postgres
+      - sleep 5
+      - task: createdb
+      - task: migrateup
+      - task: sqlboiler
+

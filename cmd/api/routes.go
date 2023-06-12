@@ -36,32 +36,13 @@ func (s *Server) routes() http.Handler {
 			Int("size", size).
 			Dur("duration", duration).
 			Msg("")
-
 	}))
 	router.Use(hlog.RemoteAddrHandler("ip"))
 	router.Use(hlog.UserAgentHandler("user_agent"))
 	router.Use(hlog.RefererHandler("refer"))
 	router.Use(hlog.RequestIDHandler("req_id", "Request-Id"))
-	// router.Use()
 
-	router.Get("/ping", func(w http.ResponseWriter, r *http.Request) {
-		hlog.FromRequest(r).Info().Str("user", "current user").Str("status", "ok").Msg("woo")
-		w.Write([]byte("pong"))
-	})
-
-	router.Post("/ping", func(w http.ResponseWriter, r *http.Request) {
-		var req request
-
-		s.readJSON(w, r, &req)
-
-		resp := response{
-			NameResp: req.Name,
-			GameResp: req.Game,
-		}
-
-		s.writeJSON(w, http.StatusOK, envelope{"resp": resp}, nil)
-
-	})
+	router.Use(s.AddUserCtx())
 
 	router.Get("/api/users", s.UserList())
 	router.Post("/api/users", s.UserCreate())
@@ -71,6 +52,7 @@ func (s *Server) routes() http.Handler {
 	router.Post("/api/users/{userID}/password", s.UserUpdatePassword())
 
 	router.Post("/api/auth/login", s.AuthLogin())
+	router.Get("/api/auth/me", s.AuthorizedGuard(s.AuthMe()))
 
 	router.Get("/health", health.NewHandler(s.health))
 

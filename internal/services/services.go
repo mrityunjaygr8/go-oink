@@ -6,11 +6,13 @@ import (
 )
 
 type Services struct {
-	UserService UserServiceInterface
+	UserService  UserServiceInterface
+	TokenService TokenServiceInterface
 }
 
 func New(db boil.ContextExecutor, logger zerolog.Logger) *Services {
 	return &Services{
-		UserService: &UserService{l: logger, DB: db},
+		UserService:  &UserService{l: logger, DB: db},
+		TokenService: &TokenService{l: logger, DB: db},
 	}
 }

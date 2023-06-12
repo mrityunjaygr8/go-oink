@@ -6,11 +6,13 @@ import (
 )
 
 type Repository struct {
-	UserRepository UserRepositoryInterface
+	UserRepository  UserRepositoryInterface
+	TokenRepository TokenRepositoryInterface
 }
 
 func New(db boil.ContextExecutor, l zerolog.Logger) *Repository {
 	return &Repository{
-		UserRepository: &UserRepository{DB: db, l: l},
+		UserRepository:  &UserRepository{DB: db, l: l},
+		TokenRepository: &TokenRepository{DB: db, l: l},
 	}
 }

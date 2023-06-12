@@ -20,7 +20,7 @@ var ErrUserCredsInvalid = errors.New("Invalid email/password")
 type UserRepositoryInterface interface {
 	UserCreate(ctx context.Context, email, password, username string) (*User, error)
 	UserUpdatePassword(ctx context.Context, userID string, password string) error
-	UserAuthenticate(ctx context.Context, email, password string) error
+	UserAuthenticate(ctx context.Context, email, password string) (*User, error)
 	UserRetrieve(ctx context.Context, userID string) (*User, error)
 	UsersList(ctx context.Context) (*[]User, error)
 	UserDelete(ctx context.Context, userID string) error
@@ -144,27 +144,27 @@ func getPasswordHash(raw string) (string, error) {
 
 	return string(hashed), nil
 }
-func (u *UserRepository) UserAuthenticate(ctx context.Context, email, password string) error {
+func (u *UserRepository) UserAuthenticate(ctx context.Context, email, password string) (*User, error) {
 	service := services.New(u.DB, u.l)
 	user, err := service.UserService.GetByEmail(ctx, email)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return ErrUserCredsInvalid
+		if errors.Is(err, services.ErrUserNotFound) {
+			return nil, ErrUserCredsInvalid
 		}
 		u.l.Error().Err(err).Msg("repository-user-UserAuthenticate-GetByEmail")
-		return err
+		return nil, err
 	}
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
 		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
-			return ErrUserCredsInvalid
+			return nil, ErrUserCredsInvalid
 		}
 
 		u.l.Error().Err(err).Msg("repository-user-UserAuthenticate-compare")
-		return err
+		return nil, err
 	}
 
-	return nil
+	return serviceToRepositoryUser(*user), nil
 }
 
 func (u *UserRepository) UserRetrieve(ctx context.Context, userID string) (*User, error) {
