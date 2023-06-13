@@ -185,6 +185,8 @@ func (s *Server) UserUpdatePassword() http.HandlerFunc {
 	}
 }
 
+// TODO!: on delete handler is needed for the user and token relationship
+// and maybe other future relations as well
 func (s *Server) UserDelete() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger := hlog.FromRequest(r)
