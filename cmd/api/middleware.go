@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"strings"
 
@@ -26,6 +27,11 @@ func (s *Server) AddUserCtx() func(next http.Handler) http.Handler {
 			repo := repository.New(s.db, *logger)
 			token, err := repo.TokenRepository.TokenRetrieve(r.Context(), tokenID)
 			if err != nil {
+				if errors.Is(err, repository.ErrTokenNotFound) {
+					ctx := context.WithValue(r.Context(), "user", nil)
+					next.ServeHTTP(w, r.WithContext(ctx))
+					return
+				}
 				logger.Error().Err(err).Msg("middleware-AddUserCtx-TokenRetrieve")
 				s.writeJSON(w, http.StatusInternalServerError, envelope{"error": http.StatusText(http.StatusInternalServerError)}, nil)
 				return
@@ -38,7 +44,8 @@ func (s *Server) AddUserCtx() func(next http.Handler) http.Handler {
 				return
 			}
 
-			ctx := context.WithValue(r.Context(), "user", user)
+			tmpCtx := context.WithValue(r.Context(), "user", user)
+			ctx := context.WithValue(tmpCtx, "token", tokenID)
 
 			// call the next handler in the chain, passing the response writer and
 			// the updated request object with the new context value.
@@ -50,11 +57,24 @@ func (s *Server) AddUserCtx() func(next http.Handler) http.Handler {
 		})
 	}
 }
-func (s *Server) AuthorizedGuard(next http.HandlerFunc) http.HandlerFunc {
+func (s *Server) AuthorizedGuard(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user := r.Context().Value("user")
 		if user == nil {
 			s.writeJSON(w, http.StatusForbidden, envelope{"error": http.StatusText(http.StatusForbidden)}, nil)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+func (s *Server) UnauthorizedGuard(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		user := r.Context().Value("user")
+
+		_, ok := user.(*repository.User)
+		if ok {
+			s.writeJSON(w, http.StatusBadRequest, envelope{"error": "You are already logged in"}, nil)
 			return
 		}
 
