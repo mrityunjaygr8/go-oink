@@ -21,40 +21,48 @@ type response struct {
 }
 
 func (s *Server) routes() http.Handler {
-	router := chi.NewRouter()
+	r := chi.NewRouter()
 
-	// middleware.DefaultLogger = middleware.RequestLogger(customLogFormatter{logger: a.l})
+	r.Use(middleware.Recoverer)
 
-	// router.Use(middleware.RequestID)
-	// router.Use(middleware.RealIP)
-	// // router.Use(middleware.Logger)
-	router.Use(middleware.Recoverer)
-
-	router.Use(hlog.NewHandler(s.l))
-	router.Use(hlog.AccessHandler(func(r *http.Request, status, size int, duration time.Duration) {
+	r.Use(hlog.NewHandler(s.l))
+	r.Use(hlog.AccessHandler(func(r *http.Request, status, size int, duration time.Duration) {
 		hlog.FromRequest(r).Info().Str("method", r.Method).Stringer("url", r.URL).Int("status", status).
 			Int("size", size).
 			Dur("duration", duration).
 			Msg("")
 	}))
-	router.Use(hlog.RemoteAddrHandler("ip"))
-	router.Use(hlog.UserAgentHandler("user_agent"))
-	router.Use(hlog.RefererHandler("refer"))
-	router.Use(hlog.RequestIDHandler("req_id", "Request-Id"))
+	r.Use(hlog.RemoteAddrHandler("ip"))
+	r.Use(hlog.UserAgentHandler("user_agent"))
+	r.Use(hlog.RefererHandler("refer"))
+	r.Use(hlog.RequestIDHandler("req_id", "Request-Id"))
 
-	router.Use(s.AddUserCtx())
+	r.Use(s.AddUserCtx())
 
-	router.Get("/api/users", s.UserList())
-	router.Post("/api/users", s.UserCreate())
+	r.Route("/api/v1", func(r chi.Router) {
+		r.Group(func(unauthorizedOnlyRouter chi.Router) {
+			unauthorizedOnlyRouter.Use(s.UnauthorizedGuard)
+			unauthorizedOnlyRouter.Post("/auth/login", s.AuthLogin())
+		})
+		r.Group(func(authorizedOnlyRouter chi.Router) {
+			authorizedOnlyRouter.Use(s.AuthorizedGuard)
 
-	router.Get("/api/users/{userID}", s.UserRetrieve())
-	router.Delete("/api/users/{userID}", s.UserDelete())
-	router.Post("/api/users/{userID}/password", s.UserUpdatePassword())
+			authorizedOnlyRouter.Get("/users", s.UserList())
+			authorizedOnlyRouter.Post("/users", s.UserCreate())
 
-	router.Post("/api/auth/login", s.AuthLogin())
-	router.Get("/api/auth/me", s.AuthorizedGuard(s.AuthMe()))
+			authorizedOnlyRouter.Get("/users/{userID}", s.UserRetrieve())
+			authorizedOnlyRouter.Delete("/users/{userID}", s.UserDelete())
+			authorizedOnlyRouter.Post("/users/{userID}/password", s.UserUpdatePassword())
 
-	router.Get("/health", health.NewHandler(s.health))
+			authorizedOnlyRouter.Get("/auth/me", s.AuthMe())
 
-	return router
+		})
+	})
+	r.Get("/health", health.NewHandler(s.health))
+
+	for _, route := range r.Routes() {
+		s.l.Info().Any("route", route.Pattern).Msg("asdf")
+	}
+
+	return r
 }
