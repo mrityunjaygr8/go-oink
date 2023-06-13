@@ -87,11 +87,6 @@ func (s *Server) AuthMe() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger := hlog.FromRequest(r)
 		user := r.Context().Value("user")
-		if user == nil {
-			logger.Error().Any("User", user).Msg("api-AuthMe-userNil")
-			s.writeJSON(w, http.StatusInternalServerError, envelope{"error": http.StatusText(http.StatusInternalServerError)}, nil)
-			return
-		}
 
 		u, ok := user.(*repository.User)
 		if !ok {
