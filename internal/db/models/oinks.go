@@ -28,8 +28,8 @@ type Oink struct {
 	ID          string      `boil:"id" json:"id" toml:"id" yaml:"id"`
 	Description null.String `boil:"description" json:"description,omitempty" toml:"description" yaml:"description,omitempty"`
 	Creator     string      `boil:"creator" json:"creator" toml:"creator" yaml:"creator"`
-	CreatedAt   null.Time   `boil:"created_at" json:"created_at,omitempty" toml:"created_at" yaml:"created_at,omitempty"`
-	UpdatedAt   null.Time   `boil:"updated_at" json:"updated_at,omitempty" toml:"updated_at" yaml:"updated_at,omitempty"`
+	CreatedAt   time.Time   `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	UpdatedAt   time.Time   `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 
 	R *oinkR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L oinkL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -130,44 +130,41 @@ func (w whereHelpernull_String) NIN(slice []string) qm.QueryMod {
 func (w whereHelpernull_String) IsNull() qm.QueryMod    { return qmhelper.WhereIsNull(w.field) }
 func (w whereHelpernull_String) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
 
-type whereHelpernull_Time struct{ field string }
+type whereHelpertime_Time struct{ field string }
 
-func (w whereHelpernull_Time) EQ(x null.Time) qm.QueryMod {
-	return qmhelper.WhereNullEQ(w.field, false, x)
+func (w whereHelpertime_Time) EQ(x time.Time) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.EQ, x)
 }
-func (w whereHelpernull_Time) NEQ(x null.Time) qm.QueryMod {
-	return qmhelper.WhereNullEQ(w.field, true, x)
+func (w whereHelpertime_Time) NEQ(x time.Time) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.NEQ, x)
 }
-func (w whereHelpernull_Time) LT(x null.Time) qm.QueryMod {
+func (w whereHelpertime_Time) LT(x time.Time) qm.QueryMod {
 	return qmhelper.Where(w.field, qmhelper.LT, x)
 }
-func (w whereHelpernull_Time) LTE(x null.Time) qm.QueryMod {
+func (w whereHelpertime_Time) LTE(x time.Time) qm.QueryMod {
 	return qmhelper.Where(w.field, qmhelper.LTE, x)
 }
-func (w whereHelpernull_Time) GT(x null.Time) qm.QueryMod {
+func (w whereHelpertime_Time) GT(x time.Time) qm.QueryMod {
 	return qmhelper.Where(w.field, qmhelper.GT, x)
 }
-func (w whereHelpernull_Time) GTE(x null.Time) qm.QueryMod {
+func (w whereHelpertime_Time) GTE(x time.Time) qm.QueryMod {
 	return qmhelper.Where(w.field, qmhelper.GTE, x)
 }
-
-func (w whereHelpernull_Time) IsNull() qm.QueryMod    { return qmhelper.WhereIsNull(w.field) }
-func (w whereHelpernull_Time) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
 
 var OinkWhere = struct {
 	Name        whereHelperstring
 	ID          whereHelperstring
 	Description whereHelpernull_String
 	Creator     whereHelperstring
-	CreatedAt   whereHelpernull_Time
-	UpdatedAt   whereHelpernull_Time
+	CreatedAt   whereHelpertime_Time
+	UpdatedAt   whereHelpertime_Time
 }{
 	Name:        whereHelperstring{field: "\"oinks\".\"name\""},
 	ID:          whereHelperstring{field: "\"oinks\".\"id\""},
 	Description: whereHelpernull_String{field: "\"oinks\".\"description\""},
 	Creator:     whereHelperstring{field: "\"oinks\".\"creator\""},
-	CreatedAt:   whereHelpernull_Time{field: "\"oinks\".\"created_at\""},
-	UpdatedAt:   whereHelpernull_Time{field: "\"oinks\".\"updated_at\""},
+	CreatedAt:   whereHelpertime_Time{field: "\"oinks\".\"created_at\""},
+	UpdatedAt:   whereHelpertime_Time{field: "\"oinks\".\"updated_at\""},
 }
 
 // OinkRels is where relationship names are stored.
@@ -199,8 +196,8 @@ type oinkL struct{}
 
 var (
 	oinkAllColumns            = []string{"name", "id", "description", "creator", "created_at", "updated_at"}
-	oinkColumnsWithoutDefault = []string{"name", "id", "creator"}
-	oinkColumnsWithDefault    = []string{"description", "created_at", "updated_at"}
+	oinkColumnsWithoutDefault = []string{"name", "id", "creator", "created_at", "updated_at"}
+	oinkColumnsWithDefault    = []string{"description"}
 	oinkPrimaryKeyColumns     = []string{"id"}
 	oinkGeneratedColumns      = []string{}
 )
@@ -713,11 +710,11 @@ func (o *Oink) Insert(ctx context.Context, exec boil.ContextExecutor, columns bo
 	if !boil.TimestampsAreSkipped(ctx) {
 		currTime := time.Now().In(boil.GetLocation())
 
-		if queries.MustTime(o.CreatedAt).IsZero() {
-			queries.SetScanner(&o.CreatedAt, currTime)
+		if o.CreatedAt.IsZero() {
+			o.CreatedAt = currTime
 		}
-		if queries.MustTime(o.UpdatedAt).IsZero() {
-			queries.SetScanner(&o.UpdatedAt, currTime)
+		if o.UpdatedAt.IsZero() {
+			o.UpdatedAt = currTime
 		}
 	}
 
@@ -798,7 +795,7 @@ func (o *Oink) Update(ctx context.Context, exec boil.ContextExecutor, columns bo
 	if !boil.TimestampsAreSkipped(ctx) {
 		currTime := time.Now().In(boil.GetLocation())
 
-		queries.SetScanner(&o.UpdatedAt, currTime)
+		o.UpdatedAt = currTime
 	}
 
 	var err error
@@ -934,10 +931,10 @@ func (o *Oink) Upsert(ctx context.Context, exec boil.ContextExecutor, updateOnCo
 	if !boil.TimestampsAreSkipped(ctx) {
 		currTime := time.Now().In(boil.GetLocation())
 
-		if queries.MustTime(o.CreatedAt).IsZero() {
-			queries.SetScanner(&o.CreatedAt, currTime)
+		if o.CreatedAt.IsZero() {
+			o.CreatedAt = currTime
 		}
-		queries.SetScanner(&o.UpdatedAt, currTime)
+		o.UpdatedAt = currTime
 	}
 
 	if err := o.doBeforeUpsertHooks(ctx, exec); err != nil {

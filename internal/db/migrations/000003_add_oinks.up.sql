@@ -3,8 +3,8 @@ CREATE TABLE "oinks" (
   "id" uuid PRIMARY KEY NOT NULL,
   "description" varchar,
   "creator" uuid NOT NULL,
-  "created_at" timestamptz,
-  "updated_at" timestamptz
+  "created_at" timestamptz NOT NULL,
+  "updated_at" timestamptz NOT NULL
 );
 
 ALTER TABLE "oinks" ADD CONSTRAINT "fk_oinks_user" FOREIGN KEY ("creator") REFERENCES "users" ("id") ON DELETE CASCADE;
