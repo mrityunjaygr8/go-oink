@@ -6,4 +6,4 @@ CREATE TABLE IF NOT EXISTS "tokens" (
   "updated_at" timestamptz NOT NULL
 );
 
-ALTER TABLE "tokens" ADD CONSTRAINT "fk_token_users" FOREIGN KEY ("user") REFERENCES "users" ("id");
+ALTER TABLE "tokens" ADD CONSTRAINT "fk_token_users" FOREIGN KEY ("user") REFERENCES "users" ("id") ON DELETE CASCADE;
