@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"os"
 
+	_ "github.com/lib/pq"
+
 	"github.com/mrityunjaygr8/go-oink/internal/config"
 	"github.com/mrityunjaygr8/go-oink/internal/repository"
 	"github.com/rs/zerolog"
@@ -34,13 +36,11 @@ func main() {
 	logger.Info().Msg(c.DbDsn)
 	db, err := sql.Open("postgres", c.DbDsn)
 	if err != nil {
-		// logger.WithFields(c.toFields()).Fatal(err)
 		logger.Fatal().Any("config", c).Err(err)
 	}
 
 	err = db.Ping()
 	if err != nil {
-		// logger.WithFields(c.toFields()).Fatal(err)
 		logger.Fatal().Any("config", c).Err(err)
 	}
 
@@ -52,9 +52,11 @@ func main() {
 	user.Username = "im@parham"
 
 	logger.Info().Any("user", user).Msg("Setup")
-	_, err = repo.UserRepository.UserCreate(context.Background(), user.Email, user.Password, user.Username)
+	u, err := repo.UserRepository.UserCreate(context.Background(), user.Email, user.Password, user.Username)
 	if err != nil {
 		logger.Info().Err(err).Msg("UserCreate")
 	}
+
+	logger.Info().Any("user", u).Msg("user created successfully")
 
 }
