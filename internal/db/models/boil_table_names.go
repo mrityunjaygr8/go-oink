@@ -4,10 +4,12 @@
 package dbmodels
 
 var TableNames = struct {
+	Oinks            string
 	SchemaMigrations string
 	Tokens           string
 	Users            string
 }{
+	Oinks:            "oinks",
 	SchemaMigrations: "schema_migrations",
 	Tokens:           "tokens",
 	Users:            "users",

@@ -6,6 +6,8 @@ package dbmodels
 import "testing"
 
 func TestUpsert(t *testing.T) {
+	t.Run("Oinks", testOinksUpsert)
+
 	t.Run("SchemaMigrations", testSchemaMigrationsUpsert)
 
 	t.Run("Tokens", testTokensUpsert)
