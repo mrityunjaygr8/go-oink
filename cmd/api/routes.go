@@ -54,8 +54,8 @@ func (s *Server) routes() http.Handler {
 			authorizedOnlyRouter.Delete("/users/{userID}", s.UserDelete())
 			authorizedOnlyRouter.Post("/users/{userID}/password", s.UserUpdatePassword())
 
+			authorizedOnlyRouter.Get("/oinks", s.OinkList())
 			authorizedOnlyRouter.Get("/auth/me", s.AuthMe())
-
 		})
 	})
 	r.Get("/health", health.NewHandler(s.health))

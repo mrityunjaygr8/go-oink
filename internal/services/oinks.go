@@ -18,6 +18,7 @@ type OinkService struct {
 }
 
 type OinksServiceInterface interface {
+	Exists(context.Context, string) (bool, error)
 	Insert(context.Context, *Oink) error
 	List(context.Context) (*[]Oink, error)
 	Retrieve(context.Context, string) (*Oink, error)
@@ -52,6 +53,16 @@ type Oink struct {
 	Creator     string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
+}
+
+func (o *OinkService) Exists(ctx context.Context, oinkName string) (bool, error) {
+	oinkExists, err := dbmodels.Oinks(dbmodels.OinkWhere.Name.EQ(oinkName)).Exists(ctx, o.DB)
+	if err != nil {
+		o.l.Error().Err(err).Msg("services-OinksService-Exists")
+		return false, err
+	}
+
+	return oinkExists, nil
 }
 
 func (o *OinkService) Insert(ctx context.Context, oink *Oink) error {
