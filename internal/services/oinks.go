@@ -22,6 +22,7 @@ type OinksServiceInterface interface {
 	Insert(context.Context, *Oink) error
 	List(context.Context) (*[]Oink, error)
 	Retrieve(context.Context, string) (*Oink, error)
+	RetrieveByName(context.Context, string) (*Oink, error)
 	Delete(context.Context, string) error
 }
 
@@ -92,7 +93,7 @@ func (o *OinkService) List(ctx context.Context) (*[]Oink, error) {
 }
 
 func (o *OinkService) Retrieve(ctx context.Context, oinkID string) (*Oink, error) {
-	oink, err := dbmodels.Oinks(qm.Load(dbmodels.OinkRels.CreatorUser), dbmodels.OinkWhere.ID.GT(oinkID)).One(ctx, o.DB)
+	oink, err := dbmodels.Oinks(qm.Load(dbmodels.OinkRels.CreatorUser), dbmodels.OinkWhere.ID.EQ(oinkID)).One(ctx, o.DB)
 	if err != nil {
 		o.l.Error().Err(err).Msg("service-OinkRetrieve-bind")
 		return nil, err
@@ -101,16 +102,27 @@ func (o *OinkService) Retrieve(ctx context.Context, oinkID string) (*Oink, error
 	return dbToServiceOink(*oink), nil
 }
 
-func (u *OinkService) Delete(ctx context.Context, oinkID string) error {
-	oink, err := dbmodels.FindOink(ctx, u.DB, oinkID)
+func (o *OinkService) RetrieveByName(ctx context.Context, oinkName string) (*Oink, error) {
+	oink, err := dbmodels.Oinks(qm.Load(dbmodels.OinkRels.CreatorUser), dbmodels.OinkWhere.Name.EQ(oinkName)).One(ctx, o.DB)
+	o.l.Info().Str("oinkName", oinkName).Any("oink", oink).Err(err).Msg("asdfkjh")
 	if err != nil {
-		u.l.Error().Err(err).Msg("service-oink-delete-findOinks")
+		o.l.Error().Err(err).Msg("service-OinkRetrieveByName-bind")
+		return nil, err
+	}
+
+	return dbToServiceOink(*oink), nil
+}
+
+func (o *OinkService) Delete(ctx context.Context, oinkName string) error {
+	oink, err := dbmodels.Oinks(dbmodels.OinkWhere.Name.EQ(oinkName)).One(ctx, o.DB)
+	if err != nil {
+		o.l.Error().Err(err).Msg("service-oink-delete-findOinks")
 		return err
 	}
 
-	_, err = oink.Delete(ctx, u.DB)
+	_, err = oink.Delete(ctx, o.DB)
 	if err != nil {
-		u.l.Error().Err(err).Msg("service-oink-delete-delete")
+		o.l.Error().Err(err).Msg("service-oink-delete-delete")
 		return err
 	}
 

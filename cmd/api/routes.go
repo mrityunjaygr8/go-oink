@@ -55,6 +55,9 @@ func (s *Server) routes() http.Handler {
 			authorizedOnlyRouter.Post("/users/{userID}/password", s.UserUpdatePassword())
 
 			authorizedOnlyRouter.Get("/oinks", s.OinkList())
+			authorizedOnlyRouter.Post("/oinks", s.OinkInsert())
+			authorizedOnlyRouter.Get("/oinks/{oinkName}", s.OinkRetrieve())
+			authorizedOnlyRouter.Delete("/oinks/{oinkName}", s.OinkDelete())
 			authorizedOnlyRouter.Get("/auth/me", s.AuthMe())
 		})
 	})
