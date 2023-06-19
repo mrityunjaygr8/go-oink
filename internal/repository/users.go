@@ -13,9 +13,11 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var ErrUserExists = errors.New("User with this email or username already exists")
-var ErrUserNotFound = errors.New("User does not exists")
-var ErrUserCredsInvalid = errors.New("Invalid email/password")
+var (
+	ErrUserExists       = errors.New("User with this email or username already exists")
+	ErrUserNotFound     = errors.New("User does not exists")
+	ErrUserCredsInvalid = errors.New("Invalid email/password")
+)
 
 type UserRepositoryInterface interface {
 	UserCreate(ctx context.Context, email, password, username string) (*User, error)
@@ -99,6 +101,10 @@ func (u *UserRepository) UserCreate(ctx context.Context, email, password, userna
 	}
 
 	user.Password, err = getPasswordHash(password)
+	if err != nil {
+		u.l.Error().Err(err).Msg("repository-user-UserCreate-getPasswordHash")
+		return nil, err
+	}
 
 	err = service.UserService.Insert(ctx, &user)
 	if err != nil {
@@ -144,6 +150,7 @@ func getPasswordHash(raw string) (string, error) {
 
 	return string(hashed), nil
 }
+
 func (u *UserRepository) UserAuthenticate(ctx context.Context, email, password string) (*User, error) {
 	service := services.New(u.DB, u.l)
 	user, err := service.UserService.GetByEmail(ctx, email)
