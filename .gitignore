@@ -1,3 +1,8 @@
 .env
 tmp
 .direnv
+
+# Devenv
+.devenv*
+devenv.local.nix
+
