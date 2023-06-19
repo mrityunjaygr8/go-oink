@@ -67,7 +67,7 @@ func main() {
 	service := services.New(db, logger)
 
 	oink := &services.Oink{
-		Name:        fmt.Sprintf("chelsea %s", nRand),
+		Name:        fmt.Sprintf("chelsea_%s", nRand),
 		Description: "the official oink for chelsea FC",
 		Creator:     u.ID,
 	}
@@ -99,7 +99,7 @@ func main() {
 	}
 	oo1, err := service.OinkService.Retrieve(context.Background(), oo.ID)
 	if err != nil {
-		logger.Fatal().Err(err).Msg("user retrieve error")
+		logger.Fatal().Err(err).Msg("oink retrieve after delete error")
 	}
 	logger.Info().Any("oo1", oo1).Msg("testing oink retrieve after delete")
 }
