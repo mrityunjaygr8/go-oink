@@ -28,7 +28,7 @@ type OinksServiceInterface interface {
 
 func dbToServiceOink(dbOink dbmodels.Oink) *Oink {
 	return &Oink{
-		Creator:     dbOink.R.CreatorUser.ID,
+		Creator:     dbOink.R.CreatorUser.Username,
 		Description: dbOink.Description.String,
 		Name:        dbOink.Name,
 		CreatedAt:   dbOink.CreatedAt,
